@@ -1,24 +1,11 @@
 from tkinter import filedialog
 from tkinter import *
 from listener import Listener
-
-loginFlag=False
-'''
-
-class Listener:
-    loginFlag=False
-    Globalnome="default"
-    
-    def setName(self,name):
-        self.Globalnome=name
-        
-    def getName(self):
-        return self.Globalnome
-'''
+from tkinter import messagebox
 
 class Main:
     def start(self):
-        print("start")
+        listener.start()
         
     def stop(self):
         print("stop")
@@ -31,17 +18,13 @@ class Main:
         def addPhotos():
             for i in range(3):
                 name=str(nameI.get())
-    
                 upload = Tk()
                 upload.filename =  filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
                 photos.append(upload.filename)
                 upload.destroy()
-
-            print(name)
-            for i in photos:
-                print(i)
-
-        
+            listener.addPhotos(name,photos)
+            photos.clear()
+            
         self.lbl=Label(win, text="BioSecure", font=("Helvetica", 16))
         self.lbl.place(x=60, y=50)
         
@@ -72,10 +55,9 @@ class RegisterForm:
         def confirm():
             username = str(usernameI.get())
             passw = str(passwI.get())
-            for i in photos:
-                print(i)
-            print(username+" "+passw+" "+"me")
-            listener.setName(username)
+            listener.setCredential(username, passw)
+            listener.addPhotos("me",photos)
+            photos.clear()
             win.quit()
 
         self.btn=Button(win, text="Confirm",state="disable", command=confirm)
@@ -112,10 +94,11 @@ class LoginForm:
         def confirm():
             username = str(usernameI.get())
             passw = str(passwI.get())
-            print(username+" "+passw)
+            if not listener.verifyLogin(username, passw):
+                messagebox.showerror("Error", "Invalid Username or Password")
+                return
             win.quit()
-        
-       
+            
         self.btn=Button(win, text="Back", command=win.quit)
         self.btn.place(x=30, y=60)
         self.btn=Button(win, text="Confirm", command=confirm)
@@ -131,9 +114,7 @@ class BaseLoginMain:
             windowL.geometry("200x100+10+10")
             windowL.mainloop()
             windowL.destroy()
-
-            print(listener.getName)
-            if loginFlag:
+            if listener.getFlag:
                 win.withdraw()
                 windowM=Tk()
                 mywin=Main(windowM)
@@ -149,10 +130,7 @@ class BaseLoginMain:
             windowR.geometry("200x200+10+10")
             windowR.mainloop()
             windowR.destroy()
-           
-            name=listener.getName()
-            print(name)
-            if loginFlag:
+            if listener.getFlag:
                 win.withdraw()
                 windowM=Tk()
                 mywin=Main(windowM)
