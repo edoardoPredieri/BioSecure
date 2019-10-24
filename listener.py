@@ -38,7 +38,11 @@ class Listener:
             try:
                 functionCV.start()
             except:
-                functionCV.start()
+                try:
+                    functionCV.start()
+                except:
+                    ret=("<html><body><pre>No Found</pre></body></html>").encode('ascii')
+                    self.wfile.write(ret)
             detected = functionCV.getDetected()
             print(post_data)
             ret=("<html><body><pre>" + str(detected) + "</pre></body></html>").encode('ascii')
