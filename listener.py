@@ -4,6 +4,7 @@ import socketserver
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
 import threading
+from provaCV import FunctionCV
 
 
 
@@ -29,12 +30,18 @@ class Listener:
             self.wfile.write(self._html("hi!"))
 
         def do_POST(self):
-            # Doesn't do anything with posted data
             content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
             post_data = self.rfile.read(content_length) # <--- Gets the data itself
+#verificare passw
             self._set_headers()
+            functionCV= FunctionCV()
+            try:
+                functionCV.start()
+            except:
+                functionCV.start()
+            detected = functionCV.getDetected()
             print(post_data)
-            ret=("<html><body><h1>POST!</h1><pre>" + str(post_data) + "</pre></body></html>").encode('ascii')
+            ret=("<html><body><pre>" + str(detected) + "</pre></body></html>").encode('ascii')
             self.wfile.write(ret)
 
     def setFlag(self,flag):
@@ -94,5 +101,6 @@ class Listener:
             print(f"Starting httpd server on {addr}:{port}")
             p=threading.Thread(target=httpd.serve_forever)
             p.start()
+            
                     
         
