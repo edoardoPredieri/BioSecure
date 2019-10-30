@@ -5,9 +5,12 @@ import shutil
 
 class FunctionCV:
     detected = ""
+    confidence= ""
     
     def getDetected(self):
             return self.detected
+    def getConfidence(self):
+            return self.confidence
     
     def start(self):
         try:
@@ -16,10 +19,7 @@ class FunctionCV:
             None
         
         f=open("subjectList.txt","r")
-        
         subjects = f.read().split(",")
-        
-        print(subjects)
 
         #function to detect face using OpenCV
         def detect_face(img):
@@ -120,43 +120,22 @@ class FunctionCV:
         #data will be in two lists of same size
         #one list will contain all the faces
         #and other list will contain respective labels for each face
-        print("Preparing data...")
+        
         faces, labels = prepare_training_data("training-data")
-        print("Data prepared")
+        
 
         #print total faces and labels
-        print("Total faces: ", len(faces))
-        print("Total labels: ", len(labels))
+       # print("Total faces: ", len(faces))
+     #   print("Total labels: ", len(labels))
 
 
         # This was probably the boring part, right? Don't worry, the fun stuff is coming up next. It's time to train our own face recognizer so that once trained it can recognize new faces of the persons it was trained on. Read? Ok then let's train our face recognizer. 
 
         # ### Train Face Recognizer
-
-        # As we know, OpenCV comes equipped with three face recognizers.
-        # 
-        # 1. EigenFace Recognizer: This can be created with `cv2.face.createEigenFaceRecognizer()`
-        # 2. FisherFace Recognizer: This can be created with `cv2.face.createFisherFaceRecognizer()`
-        # 3. Local Binary Patterns Histogram (LBPH): This can be created with `cv2.face.LBPHFisherFaceRecognizer()`
-        # 
-        # I am going to use LBPH face recognizer but you can use any face recognizer of your choice. No matter which of the OpenCV's face recognizer you use the code will remain the same. You just have to change one line, the face recognizer initialization line given below. 
-
-        # In[6]:
-
         #create our LBPH face recognizer 
         face_recognizer = cv2.face.LBPHFaceRecognizer_create()
 
-        #or use EigenFaceRecognizer by replacing above line with 
-        #face_recognizer = cv2.face.EigenFaceRecognizer_create()
-
-        #or use FisherFaceRecognizer by replacing above line with 
-        #face_recognizer = cv2.face.FisherFaceRecognizer_create()
-
-
         # Now that we have initialized our face recognizer and we also have prepared our training data, it's time to train the face recognizer. We will do that by calling the `train(faces-vector, labels-vector)` method of face recognizer. 
-
-        # In[7]:
-
         #train our face recognizer of our training faces
         face_recognizer.train(faces, np.array(labels))
 
@@ -205,16 +184,15 @@ class FunctionCV:
 
             #predict the image using our face recognizer 
             label, confidence = face_recognizer.predict(face)
-            print (confidence)
+
             #get name of respective label returned by face recognizer
             label_text = subjects[label]
             
             self.detected=label_text            
-            return img
+            return img, confidence
 
         # Now that we have the prediction function well defined, next step is to actually call this function on our test images and display those test images to see if our face recognizer correctly recognized them. So let's do it. This is what we have been waiting for. 
 
-        # In[10]:
         def takeSnapshot():
             key = cv2. waitKey(1)
             webcam = cv2.VideoCapture(0)
@@ -223,24 +201,21 @@ class FunctionCV:
                 key = cv2.waitKey(1)
                 cv2.imwrite(filename='test1.jpg', img=frame)
                 cv2.destroyAllWindows()
-                #print("Camera off.")
-                #print("Program ended.")
                 break
             shutil.move("test1.jpg", "test-data")
 
         
 
 
-        #print("Predicting images...")
         takeSnapshot()
-
+       
         #load test images
         test_img1 = cv2.imread("test-data/test1.jpg")
 
         #perform a prediction
-        predicted_img1 = predict(test_img1)
+        predicted_img1, self.confidence = predict(test_img1)
 
-        print("Prediction complete")
+        
 
         #display both images
         #cv2.imshow(subjects[1], cv2.resize(predicted_img1, (400, 500)))

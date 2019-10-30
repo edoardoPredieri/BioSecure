@@ -13,6 +13,7 @@ class Listener:
     username=""
     password=""
     subjects = [""]
+    stop=True
 
     class S(BaseHTTPRequestHandler):
         def _set_headers(self):
@@ -30,23 +31,37 @@ class Listener:
             self.wfile.write(self._html("hi!"))
 
         def do_POST(self):
-            content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-            post_data = self.rfile.read(content_length) # <--- Gets the data itself
-#verificare passw
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            f=open("userCredential.txt","r")
             self._set_headers()
-            functionCV= FunctionCV()
-            try:
-                functionCV.start()
-            except:
+            
+            if post_data.decode("utf-8").split("=")[1] == f.read().split(",")[1]:
+                functionCV= FunctionCV()
                 try:
                     functionCV.start()
                 except:
-                    ret=("<html><body><pre>No Found</pre></body></html>").encode('ascii')
-                    self.wfile.write(ret)
-            detected = functionCV.getDetected()
-            print(post_data)
-            ret=("<html><body><pre>" + str(detected) + "</pre></body></html>").encode('ascii')
-            self.wfile.write(ret)
+                    try:
+                        functionCV.start()
+                    except:
+                        try:
+                            functionCV.start()
+                        except:
+                            ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:ff0000'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica' >WARNING</font></pre></div></body></html>").encode('ascii')
+                            f.close()
+                            self.wfile.write(ret)
+                            return
+                detected = functionCV.getDetected()
+                confidence = functionCV.getConfidence()
+                print(confidence)
+                #verifica confidence < valore
+                ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:99ff66'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica'>No Problem, your pc is being used by: "+ str(detected) +"</font></pre></div></body></html>").encode('ascii')
+                f.close()
+                self.wfile.write(ret)
+            else:
+                ret=("<html><body><pre>Wrong Password</pre></body></html>").encode('ascii')
+                f.close()
+                self.wfile.write(ret)
 
     def setFlag(self,flag):
         self.loginFlag=flag
@@ -95,6 +110,7 @@ class Listener:
         f2.close()
         
     def start(self):
+            self.stop = False
             port = 8080
             addr="localhost"
             server_class=HTTPServer
@@ -105,6 +121,8 @@ class Listener:
             print(f"Starting httpd server on {addr}:{port}")
             p=threading.Thread(target=httpd.serve_forever)
             p.start()
-            
+
+    def stop(self):
+            self.stop = True
                     
         
