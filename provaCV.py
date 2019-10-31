@@ -193,7 +193,7 @@ class FunctionCV:
 
         # Now that we have the prediction function well defined, next step is to actually call this function on our test images and display those test images to see if our face recognizer correctly recognized them. So let's do it. This is what we have been waiting for. 
 
-        def takeSnapshot():
+        def takeSnapshotBad():
             key = cv2. waitKey(1)
             webcam = cv2.VideoCapture(0)
             while True:     
@@ -204,6 +204,21 @@ class FunctionCV:
                 break
             shutil.move("test1.jpg", "test-data")
 
+        def takeSnapshot():
+            camera_port = 0 
+            ramp_frames = 30 
+            camera = cv2.VideoCapture(camera_port)
+            def get_image():
+                 retval, im = camera.read()
+                 return im 
+            for i in range(ramp_frames):
+                temp = camera.read()
+
+            camera_capture = get_image()
+            filename = "test1.jpg"
+            cv2.imwrite(filename,camera_capture)
+            del(camera)
+            shutil.move("test1.jpg", "test-data")
         
 
 

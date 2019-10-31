@@ -1,6 +1,7 @@
 import shutil
 import os
 import socketserver
+import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
 import threading
@@ -112,10 +113,9 @@ class Listener:
     def start(self):
             self.stop = False
             port = 8080
-            addr="localhost"
+            addr=socket.gethostbyname(socket.gethostname())
             server_class=HTTPServer
             handler_class=self.S
-
             server_address = (addr, port)
             httpd = server_class(server_address, handler_class)
             print(f"Starting httpd server on {addr}:{port}")
