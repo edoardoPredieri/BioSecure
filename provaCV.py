@@ -3,6 +3,7 @@ import os
 import numpy as np
 import shutil
 
+
 class FunctionCV:
     detected = ""
     confidence= ""
@@ -189,11 +190,11 @@ class FunctionCV:
             label_text = subjects[label]
             
             self.detected=label_text            
-            return img, confidence
+            return label, confidence
 
         # Now that we have the prediction function well defined, next step is to actually call this function on our test images and display those test images to see if our face recognizer correctly recognized them. So let's do it. This is what we have been waiting for. 
 
-        def takeSnapshotBad():
+        def takeSnapshotDark():
             key = cv2. waitKey(1)
             webcam = cv2.VideoCapture(0)
             while True:     
@@ -204,7 +205,7 @@ class FunctionCV:
                 break
             shutil.move("test1.jpg", "test-data")
 
-        def takeSnapshot():
+        def takeSnapshotLight():
             camera_port = 0 
             ramp_frames = 30 
             camera = cv2.VideoCapture(camera_port)
@@ -222,20 +223,35 @@ class FunctionCV:
         
 
 
-        takeSnapshot()
-       
-        #load test images
-        test_img1 = cv2.imread("test-data/test1.jpg")
+        try:
+            takeSnapshotLight()
+            
+            #load test images
+            test_img1 = cv2.imread("test-data/test1.jpg")
 
-        #perform a prediction
-        predicted_img1, self.confidence = predict(test_img1)
+            #perform a prediction
+            pos, self.confidence = predict(test_img1)
+        except:
+            os.remove("test-data/test1.jpg")
+            takeSnapshotDark()
+            
+            #load test images
+            test_img1 = cv2.imread("test-data/test1.jpg")
 
+            #perform a prediction
+            pos, self.confidence = predict(test_img1)
         
-
-        #display both images
-        #cv2.imshow(subjects[1], cv2.resize(predicted_img1, (400, 500)))
-
-        #cv2.waitKey(0)
-        os.remove("test-data/test1.jpg")
+        filelist = os.listdir("training-data/"+"s"+str(pos)) 
+        number_files = len(filelist)
+        threshold = 100/number_files
+        
+        
+        if self.confidence < threshold:
+            os.rename("test-data/test1.jpg", "test-data/"+str(number_files)+".jpg")
+            shutil.move("test-data/"+str(number_files)+".jpg","training-data/"+"s"+str(pos))
+        else:
+            os.remove("test-data/test1.jpg")
+        
         cv2.destroyAllWindows()
         return True
+

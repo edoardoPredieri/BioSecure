@@ -7,7 +7,7 @@ import time
 import threading
 from provaCV import FunctionCV
 
-
+threshold = 70
 
 class Listener:
     loginFlag=False
@@ -55,10 +55,15 @@ class Listener:
                 detected = functionCV.getDetected()
                 confidence = functionCV.getConfidence()
                 print(confidence)
-                #verifica confidence < valore
-                ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:99ff66'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica'>No Problem, your pc is being used by: "+ str(detected) +"</font></pre></div></body></html>").encode('ascii')
-                f.close()
-                self.wfile.write(ret)
+                if confidence < threshold:
+                    ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:99ff66'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica'>No Problem, your pc is being used by: "+ str(detected) +"</font></pre></div></body></html>").encode('ascii')
+                    f.close()
+                    self.wfile.write(ret)
+                else:
+                    ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:ff0000'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica' >WARNING</font></pre></div></body></html>").encode('ascii')
+                    f.close()
+                    self.wfile.write(ret)
+                    return
             else:
                 ret=("<html><body><pre>Wrong Password</pre></body></html>").encode('ascii')
                 f.close()
