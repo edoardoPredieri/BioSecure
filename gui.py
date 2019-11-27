@@ -58,7 +58,7 @@ class RegisterForm:
             username = str(usernameI.get())
             passw = str(passwI.get())
             listener.setCredential(username, passw)
-            listener.addPhotos("me",photos)
+            listener.addPhotos(username,photos)
             photos.clear()
             win.quit()
         

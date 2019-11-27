@@ -32,41 +32,75 @@ class Listener:
             self.wfile.write(self._html("hi!"))
 
         def do_POST(self):
+            
+            def contrlPassw(passw):
+                f=open("userCredential.txt","r")
+                cont = f.readline().strip().split(',')
+                while cont[0]!="":
+                    if passw==cont[1]:
+                        f.close()
+                        return True
+                    cont = f.readline().strip().split(',')   
+                f.close()
+                return False
+
+            def getDetected(l):
+                ret=""
+                maxvalue=0
+                for i in l:
+                    if l.count(i) > maxvalue:
+                        maxvalue=l.count(i)
+                        ret=i
+                return ret
+
+            def getConfidence(s, ld, lc):
+                minvalue=1000
+                ret=0
+                for i in range(len(ld)):
+                    if ld[i]==s and  lc[i] != "" and float(lc[i]) < minvalue:
+                        minvalue=float(lc[i])
+                        ret=float(lc[i])
+                return ret
+                    
+            
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            f=open("userCredential.txt","r")
             self._set_headers()
             
-            if post_data.decode("utf-8").split("=")[1] == f.read().split(",")[1]:
-                functionCV= FunctionCV()
-                try:
-                    functionCV.start()
-                except:
+            if contrlPassw(post_data.decode("utf-8").split("=")[1]):
+                detectedList=[]
+                confidenceList=[]
+                for i in range(3):
+                    functionCV= FunctionCV()
                     try:
                         functionCV.start()
                     except:
                         try:
                             functionCV.start()
                         except:
-                            ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:ff0000'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica' >WARNING</font></pre></div></body></html>").encode('ascii')
-                            f.close()
-                            self.wfile.write(ret)
-                            return
-                detected = functionCV.getDetected()
-                confidence = functionCV.getConfidence()
-                print(confidence)
-                if confidence < threshold:
-                    ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:99ff66'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica'>No Problem, your pc is being used by: "+ str(detected) +"</font></pre></div></body></html>").encode('ascii')
-                    f.close()
-                    self.wfile.write(ret)
-                else:
+                             None   
+                    detectedList.append(functionCV.getDetected())
+                    confidenceList.append(functionCV.getConfidence())
+                    
+                print(detectedList)
+                print(confidenceList)
+                detected=getDetected(detectedList)
+                confidence=getConfidence(detected,detectedList, confidenceList)
+                print("distance = "+str(confidence))
+                if detected=="":
                     ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:ff0000'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica' >WARNING</font></pre></div></body></html>").encode('ascii')
-                    f.close()
                     self.wfile.write(ret)
                     return
+                else:
+                    if confidence < threshold:
+                        ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:99ff66'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica'>No Problem, your pc is being used by: "+ str(detected) +"</font></pre></div></body></html>").encode('ascii')       
+                        self.wfile.write(ret)
+                    else:
+                        ret=("<html><head><title>BioSecure</title><style type='text/css'>.title {position: relative;top: 180px}</style></head><body style='background-color:ff0000'><div id='title' align='center' class='title'><pre><font color='black' size='6' face='helvetica' >WARNING</font></pre></div></body></html>").encode('ascii')           
+                        self.wfile.write(ret)
+                        return
             else:
-                ret=("<html><body><pre>Wrong Password</pre></body></html>").encode('ascii')
-                f.close()
+                ret=("<html><body><pre>Wrong Password</pre></body></html>").encode('ascii')     
                 self.wfile.write(ret)
 
     def setFlag(self,flag):
@@ -78,9 +112,9 @@ class Listener:
     def setCredential(self, name, passw):
         self.username=name
         self.password=passw
-        f=open("userCredential.txt","w")
+        f=open("userCredential.txt","a")
         f.write(name+",")
-        f.write(passw)
+        f.write(passw+"\n")
         f.close()
         
     def getName(self):
@@ -89,15 +123,19 @@ class Listener:
     def verifyLogin(self, user, passw):
         f=open("userCredential.txt","r")
         cont = f.readline().strip().split(',')
-        self.username=cont[0]
-        self.password=cont[1]
+        while cont[0]!="":
+            if user==cont[0] and passw==cont[1]:
+                self.username=cont[0]
+                self.password=cont[1]
+                f.close()
+                return True
+            cont = f.readline().strip().split(',')
         f.close()
-        return user == self.username and passw == self.password
+        return False
 
     def addPhotos(self, name, photos):
         self.subjects.append(name)
         dirs = os.listdir("training-data")
-
         val=0
         for i in range(0, len(dirs)):
             val+=1
@@ -112,7 +150,7 @@ class Listener:
             os.rename(folder_path+"/"+photo_name, folder_path+"/"+str(i)+".jpg")
         
         f2=open("subjectList.txt","a")
-        f2.write(","+name)
+        f2.write(name+"(added by "+self.username+"),")
         f2.close()
         
     def start(self):
@@ -129,5 +167,3 @@ class Listener:
 
     def stop(self):
             self.stop = True
-                    
-        

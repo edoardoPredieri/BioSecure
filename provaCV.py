@@ -20,7 +20,8 @@ class FunctionCV:
             None
         
         f=open("subjectList.txt","r")
-        subjects = f.read().split(",")
+        subjects =[""]
+        subjects += f.read().split(",")
 
         #function to detect face using OpenCV
         def detect_face(img):
@@ -96,10 +97,6 @@ class FunctionCV:
                     #read image
                     image = cv2.imread(image_path)
                     
-                    #display an image window to show the image 
-                   # cv2.imshow("Training on image...", cv2.resize(image, (400, 500)))
-                   # cv2.waitKey(100)
-                    
                     #detect face
                     face, rect = detect_face(image)
                     
@@ -124,12 +121,6 @@ class FunctionCV:
         
         faces, labels = prepare_training_data("training-data")
         
-
-        #print total faces and labels
-       # print("Total faces: ", len(faces))
-     #   print("Total labels: ", len(labels))
-
-
         # This was probably the boring part, right? Don't worry, the fun stuff is coming up next. It's time to train our own face recognizer so that once trained it can recognize new faces of the persons it was trained on. Read? Ok then let's train our face recognizer. 
 
         # ### Train Face Recognizer
@@ -140,37 +131,11 @@ class FunctionCV:
         #train our face recognizer of our training faces
         face_recognizer.train(faces, np.array(labels))
 
-
-        # **Did you notice** that instead of passing `labels` vector directly to face recognizer I am first converting it to **numpy** array? This is because OpenCV expects labels vector to be a `numpy` array. 
-        # 
-        # Still not satisfied? Want to see some action? Next step is the real action, I promise! 
-
         # ### Prediction
 
         # Now comes my favorite part, the prediction part. This is where we actually get to see if our algorithm is actually recognizing our trained subjects's faces or not. We will take two test images of our celeberities, detect faces from each of them and then pass those faces to our trained face recognizer to see if it recognizes them. 
         # 
         # Below are some utility functions that we will use for drawing bounding box (rectangle) around face and putting celeberity name near the face bounding box. 
-
-        # In[8]:
-
-        #function to draw rectangle on image 
-        #according to given (x, y) coordinates and 
-        #given width and heigh
-        def draw_rectangle(img, rect):
-            (x, y, w, h) = rect
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            
-        #function to draw text on give image starting from
-        #passed (x, y) coordinates. 
-        def draw_text(img, text, x, y):
-            cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
-
-
-        # First function `draw_rectangle` draws a rectangle on image based on passed rectangle coordinates. It uses OpenCV's built in function `cv2.rectangle(img, topLeftPoint, bottomRightPoint, rgbColor, lineWidth)` to draw rectangle. We will use it to draw a rectangle around the face detected in test image.
-        # 
-        # Second function `draw_text` uses OpenCV's built in function `cv2.putText(img, text, startPoint, font, fontSize, rgbColor, lineWidth)` to draw text on image. 
-        # 
-        # Now that we have the drawing functions, we just need to call the face recognizer's `predict(face)` method to test our face recognizer on test images. Following function does the prediction for us.
 
         # In[9]:
 
